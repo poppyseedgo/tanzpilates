@@ -187,8 +187,7 @@ address { font-style: normal; }
   inset: 0;
   z-index: 0;
   background-color: var(--c-black);
-  background-image: var(--bg);
-  background-position: var(--bg-pos, center center);
+  /* background-image·position 은 각 섹션 인라인 스타일에서 직접 지정 */
   background-repeat: no-repeat;
   background-size: cover;
 }
