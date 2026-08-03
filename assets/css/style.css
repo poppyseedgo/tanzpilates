@@ -170,6 +170,41 @@ address { font-style: normal; }
 }
 
 /* ══════════════════════════════════════════════════════════════
+   로딩 스크린 — #e2d4cc 배경 + 로고, 로드 완료 시 페이드아웃
+   ══════════════════════════════════════════════════════════════ */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2d4cc;
+  transition: opacity .6s var(--ease), visibility 0s linear .6s;
+}
+#loading-screen img {
+  height: 160px;
+  width: auto;
+  animation: loader-breathe 1.8s ease-in-out infinite;
+}
+#loading-screen.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@keyframes loader-breathe {
+  0%, 100% { opacity: .55; transform: scale(.985); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+@media (max-width: 999px) {
+  #loading-screen img { height: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #loading-screen { transition: none; }
+  #loading-screen img { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
    섹션 공통
    ══════════════════════════════════════════════════════════════ */
 .sec {
@@ -280,10 +315,14 @@ address { font-style: normal; }
    ══════════════════════════════════════════════════════════════ */
 
 /* 기본(≥768px) — 좌측 3칼럼은 내비를 위한 여백 */
-.sec--pilates  .sec__content,
 .sec--programs .sec__content { grid-column: 4 / -1; }
 
+/* pilates·philosophy: 원본은 1/3 폭 단일 칼럼에 전부 스택 */
+.sec--pilates    .sec__content,
 .sec--philosophy .sec__content { grid-column: 4 / span 3; }
+
+/* 단일 칼럼 스택 블록 간 간격 (원본 divider 25px + 여백) */
+.stack > div + div { margin-top: 48px; }
 
 .sec--contact .sec__content--contact { grid-column: 4 / span 3; }
 .sec--contact .sec__map { grid-column: 7 / -1; }
@@ -305,6 +344,9 @@ address { font-style: normal; }
 /* 태블릿에서 3칼럼은 1칼럼으로 */
 @media (min-width: 768px) and (max-width: 999px) {
   .cols-3 { grid-template-columns: 1fr; gap: 36px; }
+  /* 단일 칼럼 섹션은 태블릿에서 폭 확보 (12칼럼 중 3칸은 너무 좁음) */
+  .sec--pilates    .sec__content,
+  .sec--philosophy .sec__content { grid-column: 4 / span 6; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -468,7 +510,16 @@ address { font-style: normal; }
 .sec--instagram { background: var(--c-black); padding: 0; }
 .sec--instagram .sec__inner { padding: 0; }
 
+.ig-widget { width: 100%; }
 .ig-widget:empty { display: none; }
+
+/* SnapWidget/Behold 등 iframe·그리드형 위젯을 화면 전체 폭으로 */
+.ig-widget iframe {
+  display: block;
+  width: 100% !important;
+  border: 0;
+}
+.ig-widget > div { width: 100% !important; max-width: none !important; }
 
 .ig-fallback {
   display: flex;
