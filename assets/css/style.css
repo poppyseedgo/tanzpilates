@@ -14,7 +14,7 @@
   /* 타이포 */
   --font-body: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
   --font-ui: 'Lato', 'Noto Sans KR', Helvetica, Arial, sans-serif;
-  --fs-body: 15px;         /* 본문 기준 크기 */
+  --fs-body: 14px;         /* 본문 기준 크기 — 원본 Salient body 14px */
   --fs-title: 14px;        /* 밑줄 제목 크기 */
   --fs-menu: 20px;         /* 데스크탑 메뉴 크기 */
   --lh-body: 1.6;
@@ -198,6 +198,45 @@ address { font-style: normal; }
   .sec__bg { background-attachment: fixed; }
 }
 
+/* ── 섹션 오버레이 — 원본 row-bg-overlay 인라인 값 그대로 ──── */
+.sec__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* hero·pilates·instagram: 원본 data-bg-overlay="false" → 오버레이 없음 */
+.sec--philosophy .sec__bg::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .83) 0%, rgba(255, 255, 255, .001) 100%);
+  opacity: .3;
+}
+.sec--programs .sec__bg::after {
+  background: linear-gradient(to bottom, #00343a 0%, #004f49 100%);
+  opacity: .3;
+}
+.sec--profile .sec__bg::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .81) 0%, rgba(71, 71, 71, .88) 100%);
+  opacity: .5;
+}
+.sec--contact .sec__bg::after {
+  background: rgba(0, 0, 0, .75);
+  opacity: .5;
+}
+
+/* ── HERO 배경 줌아웃 — 원본 data-bg-animation="zoom-out-slow" ── */
+@keyframes bg-zoom-out-slow {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+.sec--hero .sec__bg {
+  animation: bg-zoom-out-slow 8s var(--ease) both;
+  will-change: transform;
+}
+@media (min-width: 1000px) and (hover: hover) {
+  /* attachment:fixed 와 transform 은 함께 못 씀 — 데스크탑은 패럴랙스 우선 */
+  .sec--hero .sec__bg { animation: none; }
+}
+
 .sec__inner {
   position: relative;
   z-index: 1;
@@ -348,7 +387,7 @@ address { font-style: normal; }
 }
 
 .price__count { font-weight: 400; }
-.price__was   { text-decoration: line-through; font-size: .9em; line-height: 1.2em; opacity: .75; }
+.price__was   { text-decoration: line-through; font-size: .9em; line-height: 1.2em; font-weight: 400; opacity: .9; }
 .price__off   { font-weight: 400; }
 .price__final { font-weight: 600; }
 
@@ -475,12 +514,12 @@ address { font-style: normal; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }
-  .sec__bg { background-attachment: scroll; }
+  .sec__bg { background-attachment: scroll; animation: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════
    초대형 화면 — 본문이 과하게 늘어나지 않도록
    ══════════════════════════════════════════════════════════════ */
 @media (min-width: 1800px) {
-  :root { --edge: 60px; --fs-body: 16px; }
+  :root { --edge: 60px; --fs-body: 15px; }
 }
