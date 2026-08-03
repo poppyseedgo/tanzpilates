@@ -1,0 +1,16 @@
+# ── 보안 헤더 (모든 경로) ───────────────────────────────────
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# ── 정적 자산은 1년 캐시 (파일명 바꾸면 즉시 갱신) ──────────
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ── HTML 은 항상 최신 확인 ──────────────────────────────────
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate

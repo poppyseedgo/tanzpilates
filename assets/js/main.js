@@ -1,0 +1,180 @@
+/* ══════════════════════════════════════════════════════════════
+   Tanz Pilates Studio — main.js
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ────────────────────────────────────────────────────────────
+     ① 설정 — 이 두 값만 채우면 됩니다
+     ──────────────────────────────────────────────────────────── */
+
+  // 네이버 클라우드 플랫폼 > Maps > Application 에서 발급받은 Key ID.
+  // 비워두면 지도 대신 주소 카드 + 네이버 지도 링크가 그대로 노출됩니다.
+  var NAVER_MAP_KEY_ID = '';
+
+  // 인스타그램 위젯을 index.html 의 #ig-widget 안에 붙여넣었다면 true.
+  // false 로 두면 "Tanz Pilates 팔로우" 폴백이 노출됩니다.
+  var IG_WIDGET_INSTALLED = false;
+
+
+  /* ────────────────────────────────────────────────────────────
+     ② 스크롤 등장 애니메이션
+     ──────────────────────────────────────────────────────────── */
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function initReveal() {
+    var items = document.querySelectorAll('.reveal');
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('is-in'); });
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        var delay = parseInt(el.dataset.delay || '0', 10);
+        setTimeout(function () { el.classList.add('is-in'); }, delay);
+        io.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
+
+    items.forEach(function (el) { io.observe(el); });
+  }
+
+
+  /* ────────────────────────────────────────────────────────────
+     ③ 현재 섹션에 해당하는 메뉴 활성화
+     ──────────────────────────────────────────────────────────── */
+  function initActiveMenu() {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.nav__menu a[href^="#"]'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+
+    var map = {};
+    var sections = [];
+
+    links.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var sec = document.getElementById(id);
+      if (!sec) return;
+      map[id] = a;
+      sections.push(sec);
+    });
+
+    function setActive(id) {
+      links.forEach(function (a) { a.classList.remove('is-active'); });
+      if (map[id]) map[id].classList.add('is-active');
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      // 화면에 가장 많이 보이는 섹션을 활성 처리
+      var best = null;
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+      });
+      if (best) setActive(best.target.id);
+    }, { threshold: [0.25, 0.5, 0.75] });
+
+    sections.forEach(function (s) { io.observe(s); });
+  }
+
+
+  /* ────────────────────────────────────────────────────────────
+     ④ 네이버 지도 — 키가 있을 때만 로드
+     ──────────────────────────────────────────────────────────── */
+  function initMap() {
+    var el = document.getElementById('map');
+    if (!el || !NAVER_MAP_KEY_ID) return;   // 키 없으면 폴백 카드 유지
+
+    var lat = parseFloat(el.dataset.lat);
+    var lng = parseFloat(el.dataset.lng);
+    var name = el.dataset.name;
+    var addr = el.dataset.address;
+    var mapUrl = 'https://map.naver.com/p/search/' + encodeURIComponent(addr);
+
+    var s = document.createElement('script');
+    s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + encodeURIComponent(NAVER_MAP_KEY_ID);
+    s.async = true;
+
+    s.onload = function () {
+      if (!window.naver || !window.naver.maps) return;
+      el.innerHTML = '';   // 폴백 카드 제거
+
+      var map = new naver.maps.Map(el, {
+        center: new naver.maps.LatLng(lat, lng),
+        zoom: 16,
+        zoomControl: true,
+        zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
+      });
+
+      var marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(lat, lng),
+        map: map,
+        cursor: 'pointer'
+      });
+
+      var infoWindow = new naver.maps.InfoWindow({
+        content:
+          '<div style="padding:10px 14px;font-size:14px;line-height:1.5;">' +
+          '<strong>' + name + '</strong><br>' + addr + '<br>' +
+          '<a href="' + mapUrl + '" target="_blank" rel="noopener" ' +
+          'style="display:inline-block;margin-top:6px;color:#03c75a;font-weight:bold;text-decoration:none;">' +
+          '탄츠필라테스 네이버 지도에서 보기 →</a></div>'
+      });
+
+      naver.maps.Event.addListener(marker, 'click', function () {
+        window.open(mapUrl, '_blank', 'noopener');
+      });
+
+      infoWindow.open(map, marker);
+    };
+
+    s.onerror = function () {
+      // 스크립트 로드 실패 시 폴백 카드를 그대로 둡니다
+      console.warn('[map] 네이버 지도 스크립트를 불러오지 못했습니다. 주소 카드로 대체합니다.');
+    };
+
+    document.head.appendChild(s);
+  }
+
+
+  /* ────────────────────────────────────────────────────────────
+     ⑤ 인스타그램 위젯 폴백 제어
+     ──────────────────────────────────────────────────────────── */
+  function initInstagram() {
+    var wrap = document.getElementById('ig-widget');
+    var fallback = document.getElementById('ig-fallback');
+    if (!wrap || !fallback) return;
+
+    function check() {
+      var hasContent = IG_WIDGET_INSTALLED || wrap.children.length > 0 || wrap.offsetHeight > 40;
+      fallback.classList.toggle('is-hidden', hasContent);
+    }
+
+    check();
+    // 서드파티 위젯은 비동기로 주입되므로 잠시 지켜봅니다
+    var tries = 0;
+    var timer = setInterval(function () {
+      check();
+      if (++tries > 10) clearInterval(timer);
+    }, 800);
+  }
+
+
+  /* ────────────────────────────────────────────────────────────
+     실행
+     ──────────────────────────────────────────────────────────── */
+  function boot() {
+    initReveal();
+    initActiveMenu();
+    initMap();
+    initInstagram();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();

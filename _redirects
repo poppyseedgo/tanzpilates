@@ -1,0 +1,25 @@
+# 워드프레스 시절 URL 정리 — 원페이지 앵커로 매핑
+/about        /#pilates      301
+/about/       /#pilates      301
+/philosophy   /#philosophy   301
+/philosophy/  /#philosophy   301
+/program      /#programs     301
+/program/     /#programs     301
+/programs     /#programs     301
+/programs/    /#programs     301
+/profile      /#profile      301
+/profile/     /#profile      301
+/contact      /#contact      301
+/contact/     /#contact      301
+/instagram    /#instagram    301
+
+# 워드프레스 잔여 경로 — 봇 트래픽과 404 차단
+/wp-admin/*   /              301
+/wp-login.php /              301
+/xmlrpc.php   /              301
+/feed         /              301
+/feed/        /              301
+/comments/feed/ /            301
+
+# 나머지는 모두 홈으로 (원페이지이므로)
+/*            /              301

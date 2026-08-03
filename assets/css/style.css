@@ -1,0 +1,486 @@
+/* ══════════════════════════════════════════════════════════════
+   Tanz Pilates Studio — style.css
+   워드프레스(Salient + WPBakery) 원본을 정적 사이트로 재구축
+   조정 포인트는 모두 :root 변수에 모아두었습니다.
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* 레이아웃 */
+  --nav-w: 275px;          /* 데스크탑 좌측 사이드바 너비 */
+  --edge: 30px;            /* 화면 좌우 여백 */
+  --gutter: 30px;          /* 12칼럼 간격 */
+  --sec-pad-y: 5vw;        /* 섹션 상하 여백 */
+
+  /* 타이포 */
+  --font-body: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+  --font-ui: 'Lato', 'Noto Sans KR', Helvetica, Arial, sans-serif;
+  --fs-body: 15px;         /* 본문 기준 크기 */
+  --fs-title: 14px;        /* 밑줄 제목 크기 */
+  --fs-menu: 20px;         /* 데스크탑 메뉴 크기 */
+  --lh-body: 1.6;
+
+  /* 색 */
+  --c-text: #fff;
+  --c-menu: rgba(255, 255, 255, .58);
+  --c-menu-on: #fff;
+  --c-rule: rgba(255, 255, 255, .5);
+  --c-hairline: rgba(255, 255, 255, .15);
+  --c-icon-border: rgba(255, 255, 255, .3);
+  --c-black: #000;
+
+  /* 모션 */
+  --ease: cubic-bezier(.165, .84, .44, 1);
+}
+
+/* ── reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--c-black);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img { max-width: 100%; height: auto; display: block; border: 0; }
+a { color: inherit; text-decoration: none; }
+p { margin: 0 0 1.2em; }
+p:last-child { margin-bottom: 0; }
+h2, h3, h4 { font-weight: 400; font-size: 1em; line-height: var(--lh-body); margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+address { font-style: normal; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 10000;
+  background: #fff; color: #000; padding: 10px 16px;
+  font-family: var(--font-ui); font-size: 13px;
+}
+.skip-link:focus { left: 0; }
+
+:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ══════════════════════════════════════════════════════════════
+   내비게이션
+   데스크탑(≥1000px): 좌측 고정 사이드바
+   모바일(<1000px):  좌측 고정 스트립 (로고 + 세로 메뉴)
+   ══════════════════════════════════════════════════════════════ */
+.nav {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;         /* 배경 클릭 통과, 내부 요소만 활성 */
+}
+.nav > * { pointer-events: auto; }
+
+.nav__logo { display: block; }
+.nav__logo img {
+  width: auto;
+  opacity: .85;
+  transition: opacity .3s var(--ease);
+}
+.nav__logo:hover img { opacity: 1; }
+
+.nav__menu ul { display: block; }
+
+.nav__menu a {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-weight: 300;
+  text-transform: uppercase;
+  color: var(--c-menu);
+  transition: color .3s var(--ease), letter-spacing .3s var(--ease);
+}
+.nav__menu a:hover { color: var(--c-menu-on); }
+
+.nav__menu a.is-active {
+  color: var(--c-menu-on);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.nav__copy {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  margin: 1% 2% 1.5% 2%;
+  font-family: var(--font-ui);
+  font-size: 8px;
+  line-height: 2.1em;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: .6;
+}
+.nav__copy a { border-bottom: 1px solid rgba(255, 255, 255, .4); }
+
+/* ── 데스크탑 사이드바 ─────────────────────────────────────── */
+@media (min-width: 1000px) {
+  .nav { width: var(--nav-w); padding: 20px 35px 35px; }
+  .nav__logo { margin: 20px 0 0 -15px; }
+  .nav__logo img { height: 200px; }
+  .nav__menu { padding-top: 20px; }
+  .nav__menu a {
+    padding: 4px 0;
+    font-size: var(--fs-menu);
+    line-height: 1.1em;
+    letter-spacing: .5px;
+  }
+  /* 원본의 .menu-padding — 1번(TANZ PILATES)·4번(PROFILE) 항목 뒤 그룹 간격 */
+  .nav__menu li:nth-child(1) a,
+  .nav__menu li:nth-child(4) a { padding-bottom: 14px; }
+}
+
+/* ── 모바일/태블릿 좌측 스트립 ─────────────────────────────── */
+@media (max-width: 999px) {
+  .nav { width: auto; padding: 10px 0 0; }
+  .nav__logo { padding-left: 2%; opacity: .9; }
+  .nav__logo img { height: 130px; }
+  .nav__menu {
+    width: 120px;
+    margin: 5% 0;
+    padding-left: 13px;
+  }
+  .nav__menu a {
+    padding: 3px 0;
+    font-size: 1em;
+    line-height: 1.35em;
+    letter-spacing: .88px;
+  }
+}
+@media (min-width: 690px) and (max-width: 999px) {
+  .nav__menu { padding-left: 27px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   섹션 공통
+   ══════════════════════════════════════════════════════════════ */
+.sec {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: var(--sec-pad-y) 0;
+  overflow: hidden;
+}
+
+.sec__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--c-black);
+  background-image: var(--bg);
+  background-position: var(--bg-pos, center center);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* 데스크탑에서만 패럴랙스 (모바일 사파리에서 attachment:fixed 는 깨짐) */
+@media (min-width: 1000px) and (hover: hover) {
+  .sec__bg { background-attachment: fixed; }
+}
+
+.sec__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0 var(--edge);
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--gutter);
+  align-items: start;
+}
+
+.sec--hero { align-items: flex-end; }
+
+/* ── 밑줄 제목 (원본 .under-pp) ─────────────────────────────── */
+.rule-title {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 24px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-rule);
+  font-size: var(--fs-title);
+  font-weight: 700;
+  line-height: 2em;
+}
+.rule-title em { font-style: normal; font-weight: 400; opacity: .8; }
+
+/* 원본 .underrr */
+.em { font-weight: 600; }
+
+/* ── 3칼럼 텍스트 블록 ─────────────────────────────────────── */
+.cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gutter);
+}
+.cols-3--intro { grid-template-columns: repeat(3, 1fr); }
+.cols-3--intro > * { grid-column: 1; }
+
+/* ══════════════════════════════════════════════════════════════
+   섹션별 칼럼 배치 (12칼럼 기준, 원본 WPBakery 그리드 그대로)
+   ══════════════════════════════════════════════════════════════ */
+
+/* 기본(≥768px) — 좌측 3칼럼은 내비를 위한 여백 */
+.sec--pilates  .sec__content,
+.sec--programs .sec__content { grid-column: 4 / -1; }
+
+.sec--philosophy .sec__content { grid-column: 4 / span 3; }
+
+.sec--contact .sec__content--contact { grid-column: 4 / span 3; }
+.sec--contact .sec__map { grid-column: 7 / -1; }
+
+.sec__inner--full > * { grid-column: 1 / -1; }
+
+/* 모바일(<768px) — 좌측 4칼럼(33%)이 내비 스트립 */
+@media (max-width: 767px) {
+  .sec--pilates  .sec__content,
+  .sec--programs .sec__content,
+  .sec--philosophy .sec__content,
+  .sec--contact .sec__content--contact { grid-column: 5 / -1; }
+
+  .sec--contact .sec__map { grid-column: 5 / -1; margin-top: 40px; }
+
+  .cols-3 { grid-template-columns: 1fr; gap: 36px; }
+}
+
+/* 태블릿에서 3칼럼은 1칼럼으로 */
+@media (min-width: 768px) and (max-width: 999px) {
+  .cols-3 { grid-template-columns: 1fr; gap: 36px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PHILOSOPHY — 번호 리스트
+   ══════════════════════════════════════════════════════════════ */
+.steps { position: relative; }
+
+.steps__item {
+  position: relative;
+  padding-left: 50px;
+  margin-bottom: 40px;
+}
+.steps__item:last-child { margin-bottom: 0; }
+
+.steps__num {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 33px;
+  height: 33px;
+  line-height: 31px;
+  text-align: center;
+  border: 1px solid var(--c-icon-border);
+  border-radius: 50%;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.steps__body h3 {
+  margin-bottom: 4px;
+  font-size: 1em;
+  line-height: 30px;
+  font-weight: 400;
+}
+.steps__body p { margin: 0; line-height: 1.6em; }
+
+/* ══════════════════════════════════════════════════════════════
+   PROGRAMS — 안내문 + 가격표
+   ══════════════════════════════════════════════════════════════ */
+.notes { margin: 8px 0 48px; }
+.notes > p { margin-bottom: .8em; }
+
+.notes ul,
+.notes__list { list-style: none; }
+
+.notes li,
+.notes__list li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: .5em;
+  line-height: 1.7;
+}
+.notes li::before,
+.notes__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .75em;
+  width: 7px;
+  height: 1px;
+  background: rgba(255, 255, 255, .6);
+}
+
+.price-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gutter);
+}
+
+.price__row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 16px;
+  border-bottom: 1px solid var(--c-hairline);
+}
+
+.price__count { font-weight: 400; }
+.price__was   { text-decoration: line-through; font-size: .9em; line-height: 1.2em; opacity: .75; }
+.price__off   { font-weight: 400; }
+.price__final { font-weight: 600; }
+
+@media (max-width: 767px) {
+  .price-grid { grid-template-columns: 1fr; gap: 40px; }
+  .price__row { grid-template-columns: repeat(2, 1fr); row-gap: 4px; padding: 14px 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROFILE
+   ══════════════════════════════════════════════════════════════ */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--gutter);
+  row-gap: 60px;
+}
+
+.profile-grid__a     { grid-column: 4 / span 3; }
+.profile-grid__b     { grid-column: 10 / span 3; }
+.profile-grid__photo { grid-column: 4 / span 5; margin: 0; }
+.profile-grid__cv    { grid-column: 10 / span 3; }
+
+.profile-grid__photo img { width: 100%; }
+.profile-grid__photo figcaption { margin-top: 16px; font-size: var(--fs-title); }
+
+@media (max-width: 767px) {
+  .profile-grid { row-gap: 44px; }
+  .profile-grid__a,
+  .profile-grid__b,
+  .profile-grid__cv { grid-column: 5 / -1; }
+  .profile-grid__photo { grid-column: 1 / -1; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONTACT
+   ══════════════════════════════════════════════════════════════ */
+.contact-addr { line-height: 1.8; }
+.contact-addr strong {
+  display: block;
+  margin-top: 1.4em;
+  font-weight: 600;
+}
+.contact-addr strong a { border-bottom: 1px solid var(--c-rule); padding-bottom: 4px; }
+
+.map {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  height: 60vh;
+  max-height: 1000px;
+  background: rgba(0, 0, 0, .25);
+}
+
+.map__fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 40px;
+  border: 1px solid var(--c-hairline);
+  backdrop-filter: blur(2px);
+}
+.map__place { font-weight: 600; margin: 0; }
+.map__addr  { margin: 0; opacity: .85; }
+.map__link  { margin-top: 12px; color: #03c75a; font-weight: 600; }
+
+@media (max-width: 999px) {
+  .map { min-height: 300px; height: 300px; }
+  .map__fallback { padding: 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INSTAGRAM
+   ══════════════════════════════════════════════════════════════ */
+.sec--instagram { background: var(--c-black); padding: 0; }
+.sec--instagram .sec__inner { padding: 0; }
+
+.ig-widget:empty { display: none; }
+
+.ig-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 60vh;
+  padding: 10% var(--edge) 12%;
+  text-align: center;
+}
+.ig-fallback__text {
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: .5;
+  margin: 0;
+}
+.ig-fallback.is-hidden { display: none; }
+
+.btn-ghost {
+  display: inline-block;
+  padding: 11px 24px;
+  border: 1px solid var(--c-icon-border);
+  border-radius: 85px;
+  font-size: 12px;
+  line-height: 1.5;
+  transition: background-color .45s var(--ease), border-color .45s var(--ease);
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .6); }
+
+/* ══════════════════════════════════════════════════════════════
+   스크롤 등장 애니메이션 (원본 fade-in-from-bottom)
+   ══════════════════════════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .9s var(--ease), transform .9s var(--ease);
+}
+.reveal.is-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .sec__bg { background-attachment: scroll; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   초대형 화면 — 본문이 과하게 늘어나지 않도록
+   ══════════════════════════════════════════════════════════════ */
+@media (min-width: 1800px) {
+  :root { --edge: 60px; --fs-body: 16px; }
+}
