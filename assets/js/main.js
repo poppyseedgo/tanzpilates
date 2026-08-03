@@ -12,13 +12,41 @@
   // 비워두면 지도 대신 주소 카드 + 네이버 지도 링크가 그대로 노출됩니다.
   var NAVER_MAP_KEY_ID = '';
 
-  // 인스타그램 위젯을 index.html 의 #ig-widget 안에 붙여넣었다면 true.
-  // false 로 두면 "Tanz Pilates 팔로우" 폴백이 노출됩니다.
+  // 위젯 임베드 후에는 자동 감지되므로 보통 손댈 필요 없음.
+  // (감지가 실패하는 특수한 위젯일 때만 true 로 강제)
   var IG_WIDGET_INSTALLED = false;
 
 
   /* ────────────────────────────────────────────────────────────
-     ② 스크롤 등장 애니메이션
+     ② 로딩 스크린 — 페이지 로드 완료 시 페이드아웃
+        (효과가 보이도록 최소 600ms 유지, 안전장치 3초)
+     ──────────────────────────────────────────────────────────── */
+  function initLoader() {
+    var loader = document.getElementById('loading-screen');
+    if (!loader) return;
+
+    var shownAt = Date.now();
+    var MIN_SHOW = reduceMotion ? 0 : 600;
+
+    function hide() {
+      var wait = Math.max(0, MIN_SHOW - (Date.now() - shownAt));
+      setTimeout(function () { loader.classList.add('is-done'); }, wait);
+    }
+
+    if (document.readyState === 'complete') hide();
+    else window.addEventListener('load', hide);
+
+    setTimeout(hide, 3000);   // 로드 이벤트가 늦어도 3초 뒤엔 무조건 해제
+
+    // bfcache 복귀 시(뒤로가기) 로더가 다시 보이지 않도록
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) loader.classList.add('is-done');
+    });
+  }
+
+
+  /* ────────────────────────────────────────────────────────────
+     ③ 스크롤 등장 애니메이션
      ──────────────────────────────────────────────────────────── */
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -166,6 +194,7 @@
      실행
      ──────────────────────────────────────────────────────────── */
   function boot() {
+    initLoader();
     initReveal();
     initActiveMenu();
     initMap();
