@@ -11,9 +11,9 @@
   --gutter: 30px;          /* 12칼럼 간격 */
   --sec-pad-y: 5vw;        /* 섹션 상하 여백 */
 
-  /* 타이포 */
-  --font-body: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
-  --font-ui: 'Lato', 'Noto Sans KR', Helvetica, Arial, sans-serif;
+  /* 타이포 — 영문·숫자는 Instrument Sans, 한글은 Pretendard 로 폴스루 */
+  --font-body: 'Instrument Sans', 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+  --font-ui: 'Instrument Sans', 'Pretendard Variable', Pretendard, Helvetica, Arial, sans-serif;
   --fs-body: 14px;         /* 본문 기준 크기 — 원본 Salient body 14px */
   --fs-title: 14px;        /* 밑줄 제목 크기 */
   --fs-menu: 20px;         /* 데스크탑 메뉴 크기 */
@@ -103,7 +103,7 @@ address { font-style: normal; }
 .nav__menu a {
   display: inline-block;
   font-family: var(--font-ui);
-  font-weight: 300;
+  font-weight: 400;   /* Instrument Sans 최소 굵기 400 (기존 Lato 300 대응) */
   text-transform: uppercase;
   color: var(--c-menu);
   transition: color .3s var(--ease), letter-spacing .3s var(--ease);
