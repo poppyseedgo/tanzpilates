@@ -5,9 +5,15 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
 
-# ── 정적 자산은 1년 캐시 (파일명 바꾸면 즉시 갱신) ──────────
+# ── 이미지 등 정적 자산은 1년 캐시 ──────────────────────────
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# ── CSS/JS 는 항상 서버 재검증 (수정 즉시 반영, ETag 304) ──
+/assets/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+/assets/js/*
+  Cache-Control: public, max-age=0, must-revalidate
 
 # ── HTML 은 항상 최신 확인 ──────────────────────────────────
 /
