@@ -10,7 +10,7 @@
 
   // 네이버 클라우드 플랫폼 > Maps > Application 에서 발급받은 Key ID.
   // 비워두면 지도 대신 주소 카드 + 네이버 지도 링크가 그대로 노출됩니다.
-  var NAVER_MAP_KEY_ID = '';
+  var NAVER_MAP_KEY_ID = 'kbyjs3ojtm';
 
   // 위젯 임베드 후에는 자동 감지되므로 보통 손댈 필요 없음.
   // (감지가 실패하는 특수한 위젯일 때만 true 로 강제)
@@ -121,6 +121,19 @@
     var addr = el.dataset.address;
     var mapUrl = 'https://map.naver.com/p/search/' + encodeURIComponent(addr);
 
+    // 네이버가 2025년에 인증 파라미터를 ncpClientId → ncpKeyId 로 개편.
+    // 콘솔 앱 세대에 따라 받는 파라미터가 달라서, 신규(ncpKeyId) 실패 시 구(ncpClientId)로 1회 재시도.
+    var triedLegacy = false;
+    window.navermap_authFailure = function () {
+      if (triedLegacy) { console.warn('[map] 네이버 지도 인증 실패 — 콘솔의 Web 서비스 URL 등록을 확인하세요.'); return; }
+      triedLegacy = true;
+      var s2 = document.createElement('script');
+      s2.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=' + encodeURIComponent(NAVER_MAP_KEY_ID);
+      s2.async = true;
+      s2.onload = s.onload;
+      document.head.appendChild(s2);
+    };
+
     var s = document.createElement('script');
     s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + encodeURIComponent(NAVER_MAP_KEY_ID);
     s.async = true;
@@ -176,7 +189,9 @@
     if (!wrap || !fallback) return;
 
     function check() {
-      var hasContent = IG_WIDGET_INSTALLED || wrap.children.length > 0 || wrap.offsetHeight > 40;
+      // behold-widget 같은 커스텀 엘리먼트는 존재해도 로드 전엔 높이 0 —
+      // '실제로 그려졌는가(높이)'를 기준으로 판단해야 빈 섹션이 안 생김
+      var hasContent = IG_WIDGET_INSTALLED || wrap.offsetHeight > 40;
       fallback.classList.toggle('is-hidden', hasContent);
     }
 
