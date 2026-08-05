@@ -120,65 +120,79 @@
     var name = el.dataset.name;
     var addr = el.dataset.address;
     var mapUrl = 'https://map.naver.com/p/search/' + encodeURIComponent(addr);
+    var fallbackHTML = el.innerHTML;   // 실패 시 복원용
 
-    // 네이버가 2025년에 인증 파라미터를 ncpClientId → ncpKeyId 로 개편.
-    // 콘솔 앱 세대에 따라 받는 파라미터가 달라서, 신규(ncpKeyId) 실패 시 구(ncpClientId)로 1회 재시도.
-    var triedLegacy = false;
-    window.navermap_authFailure = function () {
-      if (triedLegacy) { console.warn('[map] 네이버 지도 인증 실패 — 콘솔의 Web 서비스 URL 등록을 확인하세요.'); return; }
-      triedLegacy = true;
-      var s2 = document.createElement('script');
-      s2.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=' + encodeURIComponent(NAVER_MAP_KEY_ID);
-      s2.async = true;
-      s2.onload = s.onload;
-      document.head.appendChild(s2);
-    };
+    function buildMap() {
+      if (!window.naver || !window.naver.maps || !window.naver.maps.Map) return false;
+      try {
+        el.innerHTML = '';   // 지도 생성 직전에만 폴백 제거
+        var map = new naver.maps.Map(el, {
+          center: new naver.maps.LatLng(lat, lng),
+          zoom: 16,
+          zoomControl: true,
+          zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
+        });
+        var marker = new naver.maps.Marker({
+          position: new naver.maps.LatLng(lat, lng),
+          map: map,
+          cursor: 'pointer'
+        });
+        var infoWindow = new naver.maps.InfoWindow({
+          content:
+            '<div style="padding:10px 14px;font-size:14px;line-height:1.5;">' +
+            '<strong>' + name + '</strong><br>' + addr + '<br>' +
+            '<a href="' + mapUrl + '" target="_blank" rel="noopener" ' +
+            'style="display:inline-block;margin-top:6px;color:#03c75a;font-weight:bold;text-decoration:none;">' +
+            '탄츠필라테스 네이버 지도에서 보기 →</a></div>'
+        });
+        naver.maps.Event.addListener(marker, 'click', function () {
+          window.open(mapUrl, '_blank', 'noopener');
+        });
+        infoWindow.open(map, marker);
+        return true;
+      } catch (e) {
+        console.warn('[map] 지도 생성 실패:', e);
+        el.innerHTML = fallbackHTML;   // 폴백 복원
+        return false;
+      }
+    }
 
-    var s = document.createElement('script');
-    s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + encodeURIComponent(NAVER_MAP_KEY_ID);
-    s.async = true;
+    // 이 앱은 구세대(AI·NAVER API) — 정식 파라미터는 ncpClientId.
+    // 실패 시 신형(ncpKeyId)으로 1회 재시도. 어느 쪽이든 성공 전엔 폴백 카드 유지.
+    var params = ['ncpClientId', 'ncpKeyId'];
+    var idx = 0;
 
-    s.onload = function () {
-      if (!window.naver || !window.naver.maps) return;
-      el.innerHTML = '';   // 폴백 카드 제거
+    function tryLoad() {
+      if (idx >= params.length) {
+        console.warn('[map] 네이버 지도 인증 실패 — 콘솔의 Web 서비스 URL 등록을 확인하세요.');
+        el.innerHTML = fallbackHTML;
+        return;
+      }
+      var param = params[idx++];
+      var authFailed = false;
+      window.navermap_authFailure = function () {
+        authFailed = true;
+        console.warn('[map] 인증 실패 (' + param + ') — 다음 방식으로 재시도');
+        setTimeout(tryLoad, 0);
+      };
+      var s = document.createElement('script');
+      s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?' + param + '=' + encodeURIComponent(NAVER_MAP_KEY_ID);
+      s.async = true;
+      s.onload = function () {
+        // 인증 실패 콜백이 onload 직후 비동기로 올 수 있어 한 틱 늦춰 판정
+        setTimeout(function () {
+          if (!authFailed) buildMap();
+        }, 150);
+      };
+      s.onerror = function () {
+        console.warn('[map] 지도 스크립트 로드 실패 (' + param + ')');
+        setTimeout(tryLoad, 0);
+      };
+      document.head.appendChild(s);
+    }
 
-      var map = new naver.maps.Map(el, {
-        center: new naver.maps.LatLng(lat, lng),
-        zoom: 16,
-        zoomControl: true,
-        zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
-      });
-
-      var marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(lat, lng),
-        map: map,
-        cursor: 'pointer'
-      });
-
-      var infoWindow = new naver.maps.InfoWindow({
-        content:
-          '<div style="padding:10px 14px;font-size:14px;line-height:1.5;">' +
-          '<strong>' + name + '</strong><br>' + addr + '<br>' +
-          '<a href="' + mapUrl + '" target="_blank" rel="noopener" ' +
-          'style="display:inline-block;margin-top:6px;color:#03c75a;font-weight:bold;text-decoration:none;">' +
-          '탄츠필라테스 네이버 지도에서 보기 →</a></div>'
-      });
-
-      naver.maps.Event.addListener(marker, 'click', function () {
-        window.open(mapUrl, '_blank', 'noopener');
-      });
-
-      infoWindow.open(map, marker);
-    };
-
-    s.onerror = function () {
-      // 스크립트 로드 실패 시 폴백 카드를 그대로 둡니다
-      console.warn('[map] 네이버 지도 스크립트를 불러오지 못했습니다. 주소 카드로 대체합니다.');
-    };
-
-    document.head.appendChild(s);
+    tryLoad();
   }
-
 
   /* ────────────────────────────────────────────────────────────
      ⑤ 인스타그램 위젯 폴백 제어
